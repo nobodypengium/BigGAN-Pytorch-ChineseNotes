@@ -48,3 +48,13 @@ Thumbs.db
 repo/
 venv/
 runs/
+/test_auto_grad.py
+/attn/
+/data/datasets/
+/data/
+/results/
+/samples/
+/logs/
+/data/datasets/img_align_celeba_png/
+/data/biggan-pytorch-901208_G.pth
+/models/

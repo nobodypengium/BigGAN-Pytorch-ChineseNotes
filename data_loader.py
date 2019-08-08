@@ -15,7 +15,7 @@ class Data_Loader():
     def transform(self, resize, totensor, normalize, centercrop):
         options = []
         if centercrop:
-            options.append(transforms.CenterCrop(160))
+            options.append(transforms.CenterCrop(160)) #这里定死160了，所以貌似只能128，从中间截图
         if resize:
             options.append(transforms.Resize((self.imsize,self.imsize)))
         if totensor:
@@ -32,12 +32,13 @@ class Data_Loader():
     
     def load_imagenet(self):
         transforms = self.transform(True, True, True, True)
-        dataset = dsets.ImageFolder(self.path+'/imagenet', transform=transforms)
+        dataset = dsets.ImageFolder(self.path+'/imagenet', transform=transforms) #读取图片子文件夹类的文件结构
         return dataset
 
     def load_celeb(self):
         transforms = self.transform(True, True, True, True)
-        dataset = dsets.ImageFolder(self.path+'/CelebA', transform=transforms)
+        # dataset = dsets.ImageFolder(self.path+'/CelebA', transform=transforms)
+        dataset = dsets.ImageFolder(self.path, transform=transforms)
         return dataset
 
     def load_off(self):
@@ -59,7 +60,7 @@ class Data_Loader():
         loader = torch.utils.data.DataLoader(dataset=dataset,
                                               batch_size=self.batch,
                                               shuffle=self.shuf,
-                                              num_workers=2,
-                                              drop_last=True)
+                                              num_workers=2, #多少个子进程加载数据
+                                              drop_last=True) #不够batch_size要不要丢掉最后一撮数据
         return loader
 

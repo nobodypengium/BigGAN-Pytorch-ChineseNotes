@@ -5,7 +5,6 @@ from trainer import Trainer
 from data_loader import Data_Loader
 from torch.backends import cudnn
 from utils import make_folder
-
 import glob
 import os
 
@@ -29,6 +28,7 @@ def main(config):
 
     print('config data_loader and build logs folder')
 
+    #TODO:为什么不是biggan? -Ans:基于某种网络改进
     if config.train:
         if config.model=='sagan':
             trainer = Trainer(data_loader.loader(), config)

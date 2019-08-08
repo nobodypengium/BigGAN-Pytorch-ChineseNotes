@@ -6,6 +6,7 @@ dim_z = 120
 vocab_size = 1000
 
 def truncated_z_sample(batch_size, truncation=1., seed=None):
+    """用于截断技巧"""
     state = None if seed is None else np.random.RandomState(seed)
     values = truncnorm.rvs(-2, 2, size=(batch_size, dim_z), random_state=state)
     return truncation * values
@@ -31,10 +32,19 @@ def one_hot_if_needed(label, vocab_size=vocab_size):
 
 
 def sample(noise, label, truncation=1., batch_size=8, vocab_size=vocab_size):
+    """
+    输入噪音和label，根据batchsize进行切割，返回有用信息，实际上啥都没干
+    :param noise:
+    :param label:
+    :param truncation:
+    :param batch_size:
+    :param vocab_size:
+    :return:
+    """
     noise = np.asarray(noise)
     label = np.asarray(label)
     num = noise.shape[0]
-    if len(label.shape) == 0:
+    if len(label.shape) == 0: # 只输入了1个label
         label = np.asarray([label] * num)
     if label.shape[0] != num:
         raise ValueError('Got # noise samples ({}) != # label samples ({})'
@@ -101,3 +111,6 @@ def imshow(a, format='png', jpeg_fallback=True):
         else:
             raise
     return disp
+
+# if __name__ == '__main__':
+#     a = sample([1,2,3,4,5,])
