@@ -10,6 +10,9 @@ from torchvision.utils import save_image
 from model_resnet import Generator, Discriminator
 from utils import *
 
+from pca_evaluate import matrix_singular_values
+import numpy as np
+
 
 class Trainer(object):
     def __init__(self, data_loader, config):
@@ -61,13 +64,13 @@ class Trainer(object):
         self.sample_path = os.path.join(config.sample_path, self.version)
         self.model_save_path = os.path.join(config.model_save_path, self.version)
 
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-        print('build_model...')
-        self.build_model()
+        self.device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 
         if self.use_tensorboard:
             self.build_tensorboard()
+
+        print('build_model...')
+        self.build_model()
 
         # Start with trained model
         if self.pretrained_model:
@@ -199,11 +202,43 @@ class Trainer(object):
                            self.total_step, d_loss_real.item(), d_loss_fake.item(), g_loss_fake.item()))
 
                 if self.use_tensorboard: #这里再定义的tersorboard上写东西
-                    self.writer.add_scalar('data/d_loss_real', d_loss_real.item(), (step + 1)) #.item()转换为标量 存储位置，x轴，y轴
-                    self.writer.add_scalar('data/d_loss_fake', d_loss_fake.item(), (step + 1))
-                    self.writer.add_scalar('data/d_loss', d_loss.item(), (step + 1))
+                    self.writer.add_scalar('loss/d_loss_real', d_loss_real.item(), (step + 1)) #.item()转换为标量 存储位置，x轴，y轴
+                    self.writer.add_scalar('loss/d_loss_fake', d_loss_fake.item(), (step + 1))
+                    self.writer.add_scalar('loss/d_loss', d_loss.item(), (step + 1))
+                    self.writer.add_scalar('loss/g_loss_fake', g_loss_fake.item(), (step + 1))
 
-                    self.writer.add_scalar('data/g_loss_fake', g_loss_fake.item(), (step + 1))
+                    #主成分分析
+                    G_parm = {}
+                    for name, parameters in self.G.named_parameters():
+                        if "embed.weight" in name or "weight_bar" in name:
+                            # print(name, ':', parameters.size())
+                            G_parm[name] = parameters.detach().cpu().numpy()
+
+                    for key in G_parm:
+                        singular_values = matrix_singular_values(G_parm[key],3) #奇异值
+                        euclid_norm = np.linalg.norm(G_parm[key])
+                        self.writer.add_scalars('singular_G/G_sigma0',{key:singular_values[0]}, (step + 1))
+                        if(len(singular_values)>1):
+                            self.writer.add_scalars('singular_G/G_sigma0div1', {key: singular_values[0]/singular_values[1]}, (step + 1))
+                            self.writer.add_scalars('singular_G/G_sigma1', {key: singular_values[1]}, (step + 1))
+                            self.writer.add_scalars('singular_G/G_sigma2', {key: singular_values[2]}, (step + 1))
+                            self.writer.add_scalars('euclid_norm_G/G_norm',{key: euclid_norm}, (step + 1))
+
+                    D_parm = {}
+                    for name, parameters in self.D.named_parameters():
+                        if "embed.weight" in name or "weight_bar" in name:
+                            # print(name, ':', parameters.size())
+                            D_parm[name] = parameters.detach().cpu().numpy()
+
+                    for key in D_parm:
+                        singular_values = matrix_singular_values(D_parm[key],3) #奇异值
+                        euclid_norm = np.linalg.norm(D_parm[key])
+                        self.writer.add_scalars('singular_D/D_sigma0',{key:singular_values[0]}, (step + 1))
+                        if (len(singular_values) > 1):
+                            self.writer.add_scalars('singular_D/D_sigma0div1', {key: singular_values[0]/singular_values[1]}, (step + 1))
+                            self.writer.add_scalars('singular_D/D_sigma1', {key: singular_values[1]}, (step + 1))
+                            self.writer.add_scalars('singular_D/D_sigma2', {key: singular_values[2]}, (step + 1))
+                            self.writer.add_scalars('euclid_norm_D/D_norm',{key:euclid_norm}, (step + 1))
                     self.writer.flush()
 
             # Sample images
@@ -242,7 +277,7 @@ class Trainer(object):
                                             [self.beta1, self.beta2])  # 从D的参数中找出需要梯度回传的项
 
         self.c_loss = torch.nn.CrossEntropyLoss()
-        # print networks
+        # print networks and
         print(self.G)
         print(self.D)
 

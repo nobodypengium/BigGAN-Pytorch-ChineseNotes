@@ -9,6 +9,11 @@ from torch.autograd import Variable
 from CrossReplicaBN import ScaledCrossReplicaBatchNorm2d
 from spectral import SpectralNorm
 
+from parameter import get_parameters
+from tensorboardX import SummaryWriter
+import os
+import glob
+
 class Spectral_Norm:
     def __init__(self, name):
         self.name = name
@@ -343,3 +348,29 @@ class Discriminator(nn.Module):
         #     print('prod', prod.size())
 
         return out_linear + prod
+
+def label_sampel(config):
+    """
+    生成选定类的度热编码
+    :return:
+    """
+    label = torch.LongTensor(config.batch_size, 1).random_() % config.n_class
+    one_hot = torch.zeros(config.batch_size, config.n_class).scatter_(1, label, 1)
+    return label.squeeze(1), one_hot
+
+def tensorboard_graph(config):
+    GB = GBlock(8, 8, n_class=config.n_class)
+    GB.eval()
+
+    GB_input = torch.randn(4,8,16,16)
+    GB_condition = torch.randn(4,148)
+
+    tf_logs_path = os.path.join(config.log_path, 'graph')
+    with SummaryWriter(log_dir=tf_logs_path,comment='BigGAN') as w:
+        w.add_graph(GB.eval(), (GB_input,GB_condition))
+
+if __name__ == '__main__':
+    config = get_parameters()
+    config.n_class = len(glob.glob(os.path.join(config.image_path, '*/')))
+    print(config)
+    tensorboard_graph(config)

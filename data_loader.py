@@ -32,7 +32,7 @@ class Data_Loader():
     
     def load_imagenet(self):
         transforms = self.transform(True, True, True, True)
-        dataset = dsets.ImageFolder(self.path+'/imagenet', transform=transforms) #读取图片子文件夹类的文件结构
+        dataset = dsets.ImageFolder(self.path, transform=transforms) #读取图片子文件夹类的文件结构
         return dataset
 
     def load_celeb(self):

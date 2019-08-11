@@ -13,7 +13,7 @@ def get_parameters():
     parser.add_argument('--imsize', type=int, default=128)
     parser.add_argument('--g_num', type=int, default=5) #TODO:
     parser.add_argument('--chn', type=int, default=64) #作为基数，所有层都是几倍于它的深度
-    parser.add_argument('--z_dim', type=int, default=120) #必须是3的倍数，因为G的潜在层被分成三部分喂入残差块
+    parser.add_argument('--z_dim', type=int, default=120) #必须是6的倍数，因为G的潜在层被分成6部分喂入残差块
     parser.add_argument('--g_conv_dim', type=int, default=64) #TODO: 这两个貌似没用，纬度用cnh实现
     parser.add_argument('--d_conv_dim', type=int, default=64) #TODO:
     parser.add_argument('--lambda_gp', type=float, default=10) #梯度惩罚项的系数
@@ -37,7 +37,7 @@ def get_parameters():
     parser.add_argument('--train', type=str2bool, default=True)
     parser.add_argument('--parallel', type=str2bool, default=False)
     parser.add_argument('--gpus', type=str, default='0', help='gpuids eg: 0,1,2,3  --parallel True  ')
-    parser.add_argument('--dataset', type=str, default='lsun', choices=['lsun', 'celeb','off'])
+    parser.add_argument('--dataset', type=str, default='lsun', choices=['lsun', 'celeb','off', 'imagenet'])
     parser.add_argument('--use_tensorboard', type=str2bool, default=False)
 
     # Path
